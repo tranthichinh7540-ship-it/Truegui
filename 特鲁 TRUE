@@ -1,0 +1,278 @@
+
+--[[
+    特鲁 TRUE UI
+    Version: 1.0
+    Theme: Ice Blue
+    Roblox Studio LocalScript
+]]
+
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+local Player = Players.LocalPlayer
+
+local TRUE = {}
+
+TRUE.Theme = {
+    White = Color3.fromHex("#ffffff"),
+    Ice = Color3.fromHex("#90bcec"),
+    Blue = Color3.fromHex("#6081f4"),
+    Primary = Color3.fromHex("#4c60ff"),
+    Accent = Color3.fromHex("#5865f2"),
+    Text = Color3.fromRGB(35, 45, 75),
+    Background = Color3.fromRGB(245, 248, 255)
+}
+
+function TRUE:CreateWindow(config)
+    config = config or {}
+
+    local Screen = Instance.new("ScreenGui")
+    Screen.Name = "TRUE_UI"
+    Screen.ResetOnSpawn = false
+    Screen.Parent = Player:WaitForChild("PlayerGui")
+
+    local Main = Instance.new("Frame")
+    Main.Name = "Main"
+    Main.Size = UDim2.fromOffset(620, 390)
+    Main.Position = UDim2.new(0.5, -310, 0.5, -195)
+    Main.BackgroundColor3 = self.Theme.Background
+    Main.BorderSizePixel = 0
+    Main.ClipsDescendants = true
+    Main.Parent = Screen
+
+    Instance.new("UICorner", Main).CornerRadius =
+        UDim.new(0, 14)
+
+    local Stroke = Instance.new("UIStroke", Main)
+    Stroke.Color = self.Theme.Ice
+    Stroke.Thickness = 1.5
+
+    -- TOP BAR
+    local Top = Instance.new("Frame")
+    Top.Size = UDim2.new(1, 0, 0, 52)
+    Top.BackgroundColor3 = self.Theme.White
+    Top.BorderSizePixel = 0
+    Top.Parent = Main
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -100, 1, 0)
+    Title.Position = UDim2.fromOffset(18, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = "特鲁 TRUE"
+    Title.TextColor3 = self.Theme.Primary
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 20
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Top
+
+    local Close = Instance.new("TextButton")
+    Close.Size = UDim2.fromOffset(34, 30)
+    Close.Position = UDim2.new(1, -44, 0, 11)
+    Close.Text = "×"
+    Close.TextSize = 22
+    Close.BackgroundColor3 = self.Theme.Primary
+    Close.TextColor3 = self.Theme.White
+    Close.Parent = Top
+    Instance.new("UICorner", Close).CornerRadius =
+        UDim.new(0, 8)
+
+    Close.MouseButton1Click:Connect(function()
+        Screen:Destroy()
+    end)
+
+    -- SIDEBAR
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Position = UDim2.fromOffset(0, 52)
+    Sidebar.Size = UDim2.new(0, 145, 1, -52)
+    Sidebar.BackgroundColor3 = self.Theme.White
+    Sidebar.BorderSizePixel = 0
+    Sidebar.Parent = Main
+
+    local SideLayout = Instance.new("UIListLayout")
+    SideLayout.Padding = UDim.new(0, 8)
+    SideLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SideLayout.Parent = Sidebar
+
+    local Padding = Instance.new("UIPadding")
+    Padding.PaddingTop = UDim.new(0, 14)
+    Padding.PaddingLeft = UDim.new(0, 10)
+    Padding.PaddingRight = UDim.new(0, 10)
+    Padding.Parent = Sidebar
+
+    -- CONTENT
+    local Content = Instance.new("Frame")
+    Content.Position = UDim2.fromOffset(155, 62)
+    Content.Size = UDim2.new(1, -165, 1, -72)
+    Content.BackgroundTransparency = 1
+    Content.Parent = Main
+
+    local Pages = {}
+    local CurrentPage
+
+    local Library = {}
+
+    function Library:CreateTab(name)
+        local Page = Instance.new("ScrollingFrame")
+        Page.Size = UDim2.fromScale(1, 1)
+        Page.BackgroundTransparency = 1
+        Page.BorderSizePixel = 0
+        Page.ScrollBarThickness = 3
+        Page.ScrollBarImageColor3 = TRUE.Theme.Blue
+        Page.Visible = false
+        Page.CanvasSize = UDim2.new()
+        Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        Page.Parent = Content
+
+        local Layout = Instance.new("UIListLayout")
+        Layout.Padding = UDim.new(0, 10)
+        Layout.Parent = Page
+
+        local TabButton = Instance.new("TextButton")
+        TabButton.Size = UDim2.new(1, 0, 0, 36)
+        TabButton.Text = name
+        TabButton.TextSize = 13
+        TabButton.Font = Enum.Font.GothamSemibold
+        TabButton.TextColor3 = TRUE.Theme.Primary
+        TabButton.BackgroundColor3 = TRUE.Theme.Background
+        TabButton.Parent = Sidebar
+        Instance.new("UICorner", TabButton).CornerRadius =
+            UDim.new(0, 8)
+
+        local Tab = {}
+
+        local function CreateButton(text, callback)
+            local Button = Instance.new("TextButton")
+            Button.Size = UDim2.new(1, -8, 0, 42)
+            Button.BackgroundColor3 = TRUE.Theme.Primary
+            Button.Text = text
+            Button.TextColor3 = TRUE.Theme.White
+            Button.TextSize = 14
+            Button.Font = Enum.Font.GothamBold
+            Button.Parent = Page
+            Instance.new("UICorner", Button).CornerRadius =
+                UDim.new(0, 9)
+
+            Button.MouseButton1Click:Connect(function()
+                if callback then callback() end
+            end)
+
+            return Button
+        end
+
+        function Tab:AddButton(text, callback)
+            return CreateButton(text, callback)
+        end
+
+        function Tab:AddToggle(text, default, callback)
+            local enabled = default or false
+
+            local Button = CreateButton(
+                text .. " : " .. (enabled and "ON" or "OFF"),
+                function()
+                    enabled = not enabled
+                    Button.Text = text .. " : " ..
+                        (enabled and "ON" or "OFF")
+
+                    if callback then callback(enabled) end
+                end
+            )
+
+            return Button
+        end
+
+        function Tab:AddSection(text)
+            local Section = Instance.new("TextLabel")
+            Section.Size = UDim2.new(1, -8, 0, 30)
+            Section.BackgroundTransparency = 1
+            Section.Text = text
+            Section.TextColor3 = TRUE.Theme.Accent
+            Section.Font = Enum.Font.GothamBold
+            Section.TextSize = 15
+            Section.TextXAlignment = Enum.TextXAlignment.Left
+            Section.Parent = Page
+            return Section
+        end
+
+        TabButton.MouseButton1Click:Connect(function()
+            if CurrentPage then
+                CurrentPage.Visible = false
+            end
+
+            CurrentPage = Page
+            Page.Visible = true
+
+            TabButton.BackgroundColor3 = TRUE.Theme.Ice
+
+            TweenService:Create(
+                Page,
+                TweenInfo.new(0.2),
+                {Position = UDim2.fromOffset(0, 0)}
+            ):Play()
+        end)
+
+        table.insert(Pages, Page)
+
+        if #Pages == 1 then
+            CurrentPage = Page
+            Page.Visible = true
+        end
+
+        return Tab
+    end
+
+    -- DRAG
+    local dragging, dragStart, startPos
+
+    Top.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Main.Position
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and (
+            input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch
+        ) then
+            local delta = input.Position - dragStart
+            Main.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    game:GetService("UserInputService").InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    return Library
+end
+
+-- CREATE WINDOW
+local Window = TRUE:CreateWindow({
+    Name = "特鲁 TRUE"
+})
+
+local Home = Window:CreateTab("Home")
+Home:AddSection("Welcome to TRUE UI")
+Home:AddButton("Test Button", function()
+    print("TRUE UI is working!")
+end)
+Home:AddToggle("Example Toggle", false, function(value)
+    print("Toggle:", value)
+end)
+
+local Settings = Window:CreateTab("Settings")
+Settings:AddSection("Interface Settings")
+Settings:AddButton("Print Version", function()
+    print("TRUE UI v1.0")
+end)
